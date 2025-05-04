@@ -1,0 +1,59 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f7f8;
+  padding: 20px;
+  font-family:times;
+}
+
+.container,.entry-form {
+  max-width: 700px;
+  margin: auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ccc;
+}
+
+h1, h2 {
+  text-align: center;
+  color: #2e3c55;
+}
+
+input {
+  margin: 5px;
+  padding: 8px;
+  width: 140px;
+  border:2px solid black;
+}
+
+button {
+  padding: 8px 16px;
+  background-color: #2e86de;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #1e6ab3;
+}
+
+table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
+.totals {
+  margin-top: 20px;
+  font-size: 18px;
+  text-align: center;
+}
+

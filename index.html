@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tally Prime Lite</title>
+  <link rel="stylesheet" href="../@TALLY-X/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Tally Prime Lite</h1>
+    
+    <div class="company-section">
+      <input type="text" id="companyName" placeholder="Enter Company Name" />
+      <button onclick="createCompany()">Create Company</button>
+    </div>
+
+    <h2 id="companyHeader"></h2>
+
+    <div class="entry-form">
+      <input type="date" id="entryDate" />
+      <input type="text" id="particulars" placeholder="Particulars" />
+      <input type="number" id="debit" placeholder="Debit" />
+      <input type="number" id="credit" placeholder="Credit" />
+      <button onclick="addEntry()">Add Entry</button>
+    </div>
+
+    <table id="ledgerTable">
+      <thead>
+  <tr>
+    <th>Date</th>
+    <th>Particulars</th>
+    <th>Debit</th>
+    <th>Credit</th>
+    <th>Action</th>
+  </tr>
+</thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <p>Total Debit: <span id="totalDebit">0</span></p>
+      <p>Total Credit: <span id="totalCredit">0</span></p>
+    </div>
+  </div>
+<div class="buttons" style="text-align: center; margin-top: 20px;">
+  <button onclick="exportCSV()">Export to CSV</button>
+</div>
+  <script src="../@TALLY-X/script.js"></script>
+</body>
+</html>
