@@ -1,163 +1,301 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tally Prime Lite</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>Tally Prime Lite</h1>
-    
-    <div class="company-section">
-      <input type="text" id="companyName" placeholder="Enter Company Name" />
-      <button onclick="createCompany()">Create Company</button>
-    </div>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tally Prime Lite Pro</title>
 
-    <h2 id="companyHeader"></h2>
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
 
-    <div class="entry-form">
-      <input type="date" id="entryDate" />
-      <input type="text" id="particulars" placeholder="Particulars" />
-      <input type="number" id="debit" placeholder="Debit" />
-      <input type="number" id="credit" placeholder="Credit" />
-      <button onclick="addEntry()">Add Entry</button>
-    </div>
-
-    <table id="ledgerTable">
-      <thead>
-  <tr>
-    <th>Date</th>
-    <th>Particulars</th>
-    <th>Debit</th>
-    <th>Credit</th>
-    <th>Action</th>
-  </tr>
-</thead>
-      <tbody>
-      </tbody>
-    </table>
-
-    <div class="totals">
-      <p>Total Debit: <span id="totalDebit">0</span></p>
-      <p>Total Credit: <span id="totalCredit">0</span></p>
-    </div>
-  </div>
-<div class="buttons" style="text-align: center; margin-top: 20px;">
-  <button onclick="exportCSV()">Export to CSV</button>
-</div>
-  <script>
-
-    let entries = [];
-
-// Load data on page load
-window.onload = () => {
-  loadData();
-};
-
-// Create company
-function createCompany() {
-  const name = document.getElementById("companyName").value.trim();
-  if (name) {
-    document.getElementById("companyHeader").textContent = name;
-    document.getElementById("companyName").value = "";
-  }
+<style>
+body {
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  background: #f3f6fb;
 }
 
-// Add new entry
+/* TOP BAR (MS OFFICE STYLE) */
+.header {
+  background: #2b579a;
+  color: white;
+  padding: 15px;
+  font-size: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.container {
+  padding: 20px;
+}
+
+/* CARD UI */
+.card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* INPUTS */
+input {
+  padding: 8px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* BUTTONS */
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 5px;
+  background: #2b579a;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1e3f75;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #2b579a;
+  color: white;
+  padding: 10px;
+}
+
+td {
+  padding: 8px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+/* BALANCE COLORS */
+.debit { color: red; }
+.credit { color: green; }
+
+/* FOOTER */
+.footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.balance-positive {
+  color: green;
+}
+.balance-negative {
+  color: red;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div>Tally Prime Lite Pro</div>
+  <div id="companyHeader">No Company</div>
+</div>
+
+<div class="container">
+
+  <!-- COMPANY -->
+  <div class="card">
+    <input type="text" id="companyName" placeholder="Company Name">
+    <button onclick="createCompany()">Create</button>
+  </div>
+
+  <!-- ENTRY FORM -->
+  <div class="card">
+    <input type="date" id="entryDate">
+    <input type="text" id="particulars" placeholder="Particulars">
+    <input type="number" id="debit" placeholder="Debit">
+    <input type="number" id="credit" placeholder="Credit">
+
+    <button onclick="addEntry()">Add (Enter)</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Particulars</th>
+          <th>Debit</th>
+          <th>Credit</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="ledgerBody"></tbody>
+    </table>
+
+    <div class="footer">
+      <div>Total Debit: <span id="totalDebit">0</span></div>
+      <div>Total Credit: <span id="totalCredit">0</span></div>
+      <div>Balance: <span id="balance">0</span></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;">
+    <button onclick="exportCSV()">Export CSV</button>
+    <button onclick="clearAll()">Clear All</button>
+  </div>
+
+</div>
+
+<script>
+let entries = [];
+let editIndex = -1;
+
+/* LOAD */
+window.onload = () => {
+  const data = localStorage.getItem("ledger");
+  if (data) {
+    entries = JSON.parse(data);
+    render();
+  }
+};
+
+/* COMPANY */
+function createCompany() {
+  const name = document.getElementById("companyName").value;
+  document.getElementById("companyHeader").textContent = name;
+}
+
+/* ADD / UPDATE ENTRY */
 function addEntry() {
-  const date = document.getElementById("entryDate").value;
-  const particulars = document.getElementById("particulars").value.trim();
-  const debit = parseFloat(document.getElementById("debit").value) || 0;
-  const credit = parseFloat(document.getElementById("credit").value) || 0;
+  const date = entryDate.value;
+  const particulars = particularsInput.value;
+  const debit = parseFloat(debitInput.value) || 0;
+  const credit = parseFloat(creditInput.value) || 0;
 
   if (!date || !particulars || (debit === 0 && credit === 0)) {
-    alert("Please fill all required fields correctly.");
+    alert("Fill correctly");
     return;
   }
 
-  entries.push({ date, particulars, debit, credit });
-  saveData();
-  renderTable();
+  const entry = { date, particulars, debit, credit };
+
+  if (editIndex >= 0) {
+    entries[editIndex] = entry;
+    editIndex = -1;
+  } else {
+    entries.push(entry);
+  }
+
+  save();
+  render();
   clearInputs();
 }
 
-// Clear input fields
-function clearInputs() {
-  document.getElementById("entryDate").value = "";
-  document.getElementById("particulars").value = "";
-  document.getElementById("debit").value = "";
-  document.getElementById("credit").value = "";
-}
+/* RENDER */
+function render() {
+  const body = document.getElementById("ledgerBody");
+  body.innerHTML = "";
 
-// Render ledger table
-function renderTable() {
-  const tableBody = document.querySelector("#ledgerTable tbody");
-  tableBody.innerHTML = "";
+  let td = 0, tc = 0;
 
-  let totalDebit = 0;
-  let totalCredit = 0;
+  entries.forEach((e, i) => {
+    td += e.debit;
+    tc += e.credit;
 
-  entries.forEach((entry, index) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${entry.date}</td>
-      <td>${entry.particulars}</td>
-      <td>${entry.debit.toFixed(2)}</td>
-      <td>${entry.credit.toFixed(2)}</td>
-      <td><button onclick="deleteEntry(${index})">Delete</button></td>
+    body.innerHTML += `
+      <tr>
+        <td>${e.date}</td>
+        <td>${e.particulars}</td>
+        <td class="debit">${e.debit}</td>
+        <td class="credit">${e.credit}</td>
+        <td>
+          <button onclick="editEntry(${i})">Edit</button>
+          <button onclick="deleteEntry(${i})">Del</button>
+        </td>
+      </tr>
     `;
-    totalDebit += entry.debit;
-    totalCredit += entry.credit;
-    tableBody.appendChild(row);
   });
 
-  document.getElementById("totalDebit").textContent = totalDebit.toFixed(2);
-  document.getElementById("totalCredit").textContent = totalCredit.toFixed(2);
+  totalDebit.textContent = td.toFixed(2);
+  totalCredit.textContent = tc.toFixed(2);
+
+  let bal = td - tc;
+  balance.textContent = bal.toFixed(2);
+
+  balance.className = bal >= 0 ? "balance-positive" : "balance-negative";
 }
 
-// Delete entry by index
-function deleteEntry(index) {
-  if (confirm("Delete this entry?")) {
-    entries.splice(index, 1);
-    saveData();
-    renderTable();
-  }
+/* EDIT */
+function editEntry(i) {
+  const e = entries[i];
+  entryDate.value = e.date;
+  particularsInput.value = e.particulars;
+  debitInput.value = e.debit;
+  creditInput.value = e.credit;
+  editIndex = i;
 }
 
-// Save to localStorage
-function saveData() {
-  localStorage.setItem("ledgerEntries", JSON.stringify(entries));
+/* DELETE */
+function deleteEntry(i) {
+  entries.splice(i, 1);
+  save();
+  render();
 }
 
-// Load from localStorage
-function loadData() {
-  const data = localStorage.getItem("ledgerEntries");
-  if (data) {
-    entries = JSON.parse(data);
-    renderTable();
-  }
+/* SAVE */
+function save() {
+  localStorage.setItem("ledger", JSON.stringify(entries));
 }
 
-// Export to CSV
+/* CLEAR */
+function clearInputs() {
+  entryDate.value = "";
+  particularsInput.value = "";
+  debitInput.value = "";
+  creditInput.value = "";
+}
+
+/* EXPORT */
 function exportCSV() {
-  if (entries.length === 0) {
-    alert("No data to export!");
-    return;
-  }
-
   let csv = "Date,Particulars,Debit,Credit\n";
-  entries.forEach(entry => {
-    csv += `${entry.date},${entry.particulars},${entry.debit},${entry.credit}\n`;
+  entries.forEach(e => {
+    csv += `${e.date},${e.particulars},${e.debit},${e.credit}\n`;
   });
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "ledger.csv";
-  link.click();
+  const blob = new Blob([csv]);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "ledger.csv";
+  a.click();
 }
-  </script>
+
+/* CLEAR ALL */
+function clearAll() {
+  if (confirm("Delete all data?")) {
+    entries = [];
+    save();
+    render();
+  }
+}
+
+/* SHORTCUT (ENTER KEY) */
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") addEntry();
+});
+
+/* INPUT SHORTCUT VARS */
+const entryDate = document.getElementById("entryDate");
+const particularsInput = document.getElementById("particulars");
+const debitInput = document.getElementById("debit");
+const creditInput = document.getElementById("credit");
+</script>
+
 </body>
 </html>
